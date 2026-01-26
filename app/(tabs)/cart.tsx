@@ -4,15 +4,12 @@ import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react-native';
 import { useCart } from '@/contexts/CartContext';
 import { useUser } from '@/contexts/UserContext';
 import { useOrders } from '@/contexts/OrderContext';
-import { trpc } from '@/lib/trpc';
 import * as Haptics from 'expo-haptics';
 
 export default function CartScreen() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
   const { userInfo } = useUser();
   const { addOrder } = useOrders();
-
-  const sendEmailMutation = trpc.email.sendOrderConfirmation.useMutation();
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
@@ -26,25 +23,10 @@ export default function CartScreen() {
         userInfo.address
       );
       
-      await sendEmailMutation.mutateAsync({
-        orderId: order.id,
-        customerName: userInfo.name,
-        email: userInfo.email,
-        address: userInfo.address,
-        items: items.map(item => ({
-          productName: item.product.name,
-          quantity: item.quantity,
-          size: item.selectedSize,
-          color: item.selectedColor,
-          price: item.product.price,
-        })),
-        total: getTotalPrice(),
-      });
-      
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(
         'Pedido Confirmado',
-        `Pedido ${order.id}\nTotal: ${getTotalPrice().toFixed(2)}€\n\nSe ha enviado un correo de confirmación a ${userInfo.email}\n\nTiempo de entrega estimado: 3-5 días laborables`,
+        `Pedido ${order.id}\nTotal: ${getTotalPrice().toFixed(2)}€\n\nTiempo de entrega estimado: 3-5 días laborables`,
         [
           {
             text: 'Continuar Comprando',
@@ -59,7 +41,7 @@ export default function CartScreen() {
       );
     } catch (error) {
       console.log('Error al procesar pedido:', error);
-      Alert.alert('Error', 'No se pudo procesar el pedido o enviar el correo. Intenta de nuevo.');
+      Alert.alert('Error', 'No se pudo procesar el pedido. Intenta de nuevo.');
     }
   };
 
