@@ -63,15 +63,20 @@ Gracias por tu compra.
       `.trim();
 
       try {
-        const data = await resend.emails.send({
+        const { data, error } = await resend.emails.send({
           from: "onboarding@resend.dev",
           to: input.email,
           subject: `Confirmación de Pedido ${input.orderId}`,
           text: emailBody,
         });
 
+        if (error) {
+          console.error("Error sending email:", error);
+          throw new Error("No se pudo enviar el correo de confirmación");
+        }
+
         console.log("Email sent successfully:", data);
-        return { success: true, messageId: data.data?.id };
+        return { success: true, messageId: data?.id };
       } catch (error) {
         console.error("Error sending email:", error);
         throw new Error("No se pudo enviar el correo de confirmación");
