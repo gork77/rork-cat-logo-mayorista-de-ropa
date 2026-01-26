@@ -264,6 +264,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
+    minHeight: 34,
   },
   filterButtonActive: {
     backgroundColor: '#000',

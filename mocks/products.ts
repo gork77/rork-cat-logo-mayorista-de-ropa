@@ -83,24 +83,7 @@ export const PRODUCTS: Product[] = [
     description: 'Pañuelo de seda elegante, diseño sofisticado',
     sizes: ['Única'],
   },
-  {
-    id: '16',
-    name: 'Gafas de Sol Aviador',
-    category: 'accessories',
-    price: 18.99,
-    image: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&q=80',
-    description: 'Gafas estilo aviador con protección UV400',
-    sizes: ['Única'],
-  },
-  {
-    id: '17',
-    name: 'Mochila Urban Minimal',
-    category: 'accessories',
-    price: 35.50,
-    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&q=80',
-    description: 'Mochila minimalista con compartimento para portátil',
-    sizes: ['Única'],
-  },
+
 
   {
     id: '18',
