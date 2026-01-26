@@ -71,7 +71,7 @@ Gracias por tu compra.
         });
 
         console.log("Email sent successfully:", data);
-        return { success: true, messageId: data.id };
+        return { success: true, messageId: data.data?.id };
       } catch (error) {
         console.error("Error sending email:", error);
         throw new Error("No se pudo enviar el correo de confirmación");
