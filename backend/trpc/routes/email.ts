@@ -64,7 +64,7 @@ Gracias por tu compra.
 
       try {
         const data = await resend.emails.send({
-          from: "pedidos@resend.dev",
+          from: "onboarding@resend.dev",
           to: input.email,
           subject: `Confirmación de Pedido ${input.orderId}`,
           text: emailBody,
