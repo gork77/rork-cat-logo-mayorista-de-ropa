@@ -1,4 +1,3 @@
-// template
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -7,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CartProvider } from "@/contexts/CartContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { OrderProvider } from "@/contexts/OrderContext";
+import { trpc, trpcClient } from "@/lib/trpc";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -27,16 +27,18 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <UserProvider>
-        <OrderProvider>
-          <CartProvider>
-            <GestureHandlerRootView>
-              <RootLayoutNav />
-            </GestureHandlerRootView>
-          </CartProvider>
-        </OrderProvider>
-      </UserProvider>
-    </QueryClientProvider>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <UserProvider>
+          <OrderProvider>
+            <CartProvider>
+              <GestureHandlerRootView>
+                <RootLayoutNav />
+              </GestureHandlerRootView>
+            </CartProvider>
+          </OrderProvider>
+        </UserProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 }
