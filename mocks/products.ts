@@ -21,15 +21,6 @@ export const PRODUCTS: Product[] = [
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
   },
   {
-    id: '7',
-    name: 'Sudadera Crewneck Premium',
-    category: 'hoodie',
-    price: 14.30,
-    image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/c5n6nhnuh6y9ns4u8etfr',
-    description: 'Sudadera cuello redondo, 100% algodón',
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-  },
-  {
     id: '8',
     name: 'Sudadera Oversized Vintage',
     category: 'hoodie',

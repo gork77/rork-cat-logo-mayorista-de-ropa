@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, Platform } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react-native';
 import { useCart } from '@/contexts/CartContext';
 import { useUser } from '@/contexts/UserContext';
 import { useOrders } from '@/contexts/OrderContext';
+import { trpc } from '@/lib/trpc';
 import * as Haptics from 'expo-haptics';
 
 export default function CartScreen() {
@@ -11,34 +12,7 @@ export default function CartScreen() {
   const { userInfo } = useUser();
   const { addOrder } = useOrders();
 
-  const sendConfirmationEmail = async (orderId: string) => {
-    const orderDate = new Date().toLocaleDateString('es-ES', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
-    });
-    
-    const itemsList = items.map(item => 
-      `- ${item.product.name} (Talla: ${item.selectedSize}${item.selectedColor ? `, Color: ${item.selectedColor}` : ''}) x${item.quantity} = ${(item.product.price * item.quantity).toFixed(2)}€`
-    ).join('\n');
-
-    const subject = `Confirmación de Pedido ${orderId}`;
-    const body = `Hola ${userInfo.name},\n\nTu pedido ha sido confirmado.\n\nPedido: ${orderId}\nFecha: ${orderDate}\n\nProductos:\n${itemsList}\n\nTotal: ${getTotalPrice().toFixed(2)}€\n\nDirección de envío:\n${userInfo.address}\n\nTiempo estimado de entrega: 3-5 días laborables\n\nGracias por tu compra.`;
-
-    const emailUrl = `mailto:${userInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-    try {
-      const canOpen = await Linking.canOpenURL(emailUrl);
-      if (canOpen) {
-        await Linking.openURL(emailUrl);
-      } else {
-        console.log('No se puede abrir el cliente de correo');
-        Alert.alert('Error', 'No se puede abrir el cliente de correo en este dispositivo');
-      }
-    } catch (error) {
-      console.log('Error al abrir correo:', error);
-    }
-  };
+  const sendEmailMutation = trpc.email.sendOrderConfirmation.useMutation();
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
@@ -52,12 +26,25 @@ export default function CartScreen() {
         userInfo.address
       );
       
-      await sendConfirmationEmail(order.id);
+      await sendEmailMutation.mutateAsync({
+        orderId: order.id,
+        customerName: userInfo.name,
+        email: userInfo.email,
+        address: userInfo.address,
+        items: items.map(item => ({
+          productName: item.product.name,
+          quantity: item.quantity,
+          size: item.selectedSize,
+          color: item.selectedColor,
+          price: item.product.price,
+        })),
+        total: getTotalPrice(),
+      });
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(
         'Pedido Confirmado',
-        `Pedido ${order.id}\nTotal: ${getTotalPrice().toFixed(2)}€\n\nSe abrirá tu cliente de correo para enviar la confirmación a ${userInfo.email}\n\nTiempo de entrega estimado: 3-5 días laborables`,
+        `Pedido ${order.id}\nTotal: ${getTotalPrice().toFixed(2)}€\n\nSe ha enviado un correo de confirmación a ${userInfo.email}\n\nTiempo de entrega estimado: 3-5 días laborables`,
         [
           {
             text: 'Continuar Comprando',
@@ -72,7 +59,7 @@ export default function CartScreen() {
       );
     } catch (error) {
       console.log('Error al procesar pedido:', error);
-      Alert.alert('Error', 'No se pudo procesar el pedido. Intenta de nuevo.');
+      Alert.alert('Error', 'No se pudo procesar el pedido o enviar el correo. Intenta de nuevo.');
     }
   };
 
