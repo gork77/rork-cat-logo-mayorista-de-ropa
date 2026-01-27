@@ -280,7 +280,6 @@ const styles = StyleSheet.create({
   },
   filterTextActive: {
     color: '#fff',
-    fontWeight: '600' as const,
   },
   productList: {
     padding: CARD_MARGIN,
