@@ -4,12 +4,15 @@ import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react-native';
 import { useCart } from '@/contexts/CartContext';
 import { useUser } from '@/contexts/UserContext';
 import { useOrders } from '@/contexts/OrderContext';
+import { trpc } from '@/lib/trpc';
 import * as Haptics from 'expo-haptics';
 
 export default function CartScreen() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
   const { userInfo } = useUser();
   const { addOrder } = useOrders();
+  
+  const sendEmailMutation = trpc.email.sendOrderNotification.useMutation();
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
@@ -22,6 +25,27 @@ export default function CartScreen() {
         userInfo.email,
         userInfo.address
       );
+      
+      try {
+        await sendEmailMutation.mutateAsync({
+          orderId: order.id,
+          customerName: userInfo.name,
+          customerEmail: userInfo.email,
+          customerPhone: userInfo.phone,
+          address: userInfo.address,
+          items: order.items.map(item => ({
+            productName: item.productName,
+            quantity: item.quantity,
+            size: item.size,
+            color: item.color,
+            price: item.price,
+          })),
+          total: order.total,
+        });
+        console.log('Email de notificación enviado correctamente');
+      } catch (emailError) {
+        console.log('Error al enviar email de notificación:', emailError);
+      }
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(

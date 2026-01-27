@@ -5,13 +5,16 @@ import { createTRPCRouter, publicProcedure } from "../create-context";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const ADMIN_EMAIL = "gor.kxcontact@gmail.com";
+
 export const emailRouter = createTRPCRouter({
-  sendOrderConfirmation: publicProcedure
+  sendOrderNotification: publicProcedure
     .input(
       z.object({
         orderId: z.string(),
         customerName: z.string(),
-        email: z.string().email(),
+        customerEmail: z.string().email(),
+        customerPhone: z.string().optional(),
         address: z.string(),
         items: z.array(
           z.object({
@@ -29,57 +32,72 @@ export const emailRouter = createTRPCRouter({
       const orderDate = new Date().toLocaleDateString('es-ES', { 
         day: 'numeric', 
         month: 'long', 
-        year: 'numeric' 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
       });
 
       const itemsList = input.items
         .map(
           (item) =>
-            `- ${item.productName} (Talla: ${item.size}${
-              item.color ? `, Color: ${item.color}` : ""
-            }) x${item.quantity} = ${(item.price * item.quantity).toFixed(2)}€`
+            `  • ${item.productName}\n    Talla: ${item.size}${
+              item.color ? ` | Color: ${item.color}` : ""
+            }\n    Cantidad: ${item.quantity} x ${item.price.toFixed(2)}€ = ${(item.price * item.quantity).toFixed(2)}€`
         )
-        .join("\n");
+        .join("\n\n");
 
       const emailBody = `
-Hola ${input.customerName},
-
-Tu pedido ha sido confirmado.
+═══════════════════════════════════════════
+           NUEVO PEDIDO RECIBIDO
+═══════════════════════════════════════════
 
 Pedido: ${input.orderId}
 Fecha: ${orderDate}
 
-Productos:
-${itemsList}
+───────────────────────────────────────────
+              DATOS DEL CLIENTE
+───────────────────────────────────────────
 
-Total: ${input.total.toFixed(2)}€
+Nombre: ${input.customerName}
+Email: ${input.customerEmail}
+${input.customerPhone ? `Teléfono: ${input.customerPhone}` : ''}
 
 Dirección de envío:
 ${input.address}
 
-Tiempo estimado de entrega: 3-5 días laborables
+───────────────────────────────────────────
+              PRODUCTOS PEDIDOS
+───────────────────────────────────────────
 
-Gracias por tu compra.
+${itemsList}
+
+───────────────────────────────────────────
+                   TOTAL
+───────────────────────────────────────────
+
+                ${input.total.toFixed(2)}€
+
+═══════════════════════════════════════════
       `.trim();
 
       try {
-        const { data, error } = await resend.emails.send({
+        const { error } = await resend.emails.send({
           from: "onboarding@resend.dev",
-          to: input.email,
-          subject: `Confirmación de Pedido ${input.orderId}`,
+          to: ADMIN_EMAIL,
+          subject: `Pedido ${input.orderId} de ${input.customerName}`,
           text: emailBody,
         });
 
         if (error) {
           console.error("Error sending email:", error);
-          throw new Error("No se pudo enviar el correo de confirmación");
+          throw new Error("No se pudo enviar el correo de notificación");
         }
 
-        console.log("Email sent successfully:", data);
-        return { success: true, messageId: data?.id };
+        console.log("Order notification email sent to admin successfully");
+        return { success: true };
       } catch (error) {
         console.error("Error sending email:", error);
-        throw new Error("No se pudo enviar el correo de confirmación");
+        throw new Error("No se pudo enviar el correo de notificación");
       }
     }),
 });
