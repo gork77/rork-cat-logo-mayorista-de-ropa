@@ -5,7 +5,7 @@ import { createTRPCRouter, publicProcedure } from "../create-context";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const ADMIN_EMAIL = "gor.kxcontact@gmail.com";
+const ADMIN_EMAIL = "g.coo.wat@gmail.com";
 
 export const emailRouter = createTRPCRouter({
   sendOrderNotification: publicProcedure
