@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Animated, Dimensions, Image } from 'react-native';
 import { Sparkles, Shirt, Palette, Zap, ChevronDown, Brush, Users, Upload, Tag, Star, Flame } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -13,6 +13,8 @@ interface DTFOption {
   discount: number;
   popular?: boolean;
   limited?: boolean;
+  image?: string;
+  artist?: string;
 }
 
 interface DTFSection {
@@ -34,11 +36,11 @@ const dtfSections: DTFSection[] = [
     badge: 'HOT',
     badgeColor: '#E53935',
     options: [
-      { id: 'nd-1', name: 'Estampado Logo Clásico', size: 'A4', originalPrice: 14.99, price: 8.99, discount: 40, popular: true },
-      { id: 'nd-2', name: 'Diseño Abstract Art', size: 'A4', originalPrice: 16.99, price: 9.99, discount: 41 },
-      { id: 'nd-3', name: 'Estampado Streetwear', size: 'A3', originalPrice: 22.99, price: 13.99, discount: 39, popular: true },
-      { id: 'nd-4', name: 'Diseño Minimal Line', size: 'A5', originalPrice: 11.99, price: 5.99, discount: 50, limited: true },
-      { id: 'nd-5', name: 'Pack 3 Diseños (A4)', size: 'A4 x3', originalPrice: 44.97, price: 22.99, discount: 49 },
+      { id: 'nd-1', name: 'Estampado Logo Clásico', size: 'A4', originalPrice: 14.99, price: 8.99, discount: 40, popular: true, image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=200&h=200&fit=crop' },
+      { id: 'nd-2', name: 'Diseño Abstract Art', size: 'A4', originalPrice: 16.99, price: 9.99, discount: 41, image: 'https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=200&h=200&fit=crop' },
+      { id: 'nd-3', name: 'Estampado Streetwear', size: 'A3', originalPrice: 22.99, price: 13.99, discount: 39, popular: true, image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=200&h=200&fit=crop' },
+      { id: 'nd-4', name: 'Diseño Minimal Line', size: 'A5', originalPrice: 11.99, price: 5.99, discount: 50, limited: true, image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=200&h=200&fit=crop' },
+      { id: 'nd-5', name: 'Pack 3 Diseños (A4)', size: 'A4 x3', originalPrice: 44.97, price: 22.99, discount: 49, image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=200&h=200&fit=crop' },
     ],
   },
   {
@@ -49,10 +51,12 @@ const dtfSections: DTFSection[] = [
     badge: 'LIMITED',
     badgeColor: '#FF8F00',
     options: [
-      { id: 'ca-1', name: 'Collab × @inkrebel', size: 'A4', originalPrice: 24.99, price: 16.99, discount: 32, limited: true },
-      { id: 'ca-2', name: 'Collab × Studio Noir', size: 'A3', originalPrice: 29.99, price: 19.99, discount: 33, popular: true },
-      { id: 'ca-3', name: 'Collab × Mura Arts', size: 'A4', originalPrice: 22.99, price: 14.99, discount: 35, limited: true },
-      { id: 'ca-4', name: 'Pack Artista (2 diseños)', size: 'A4 x2', originalPrice: 44.98, price: 27.99, discount: 38 },
+      { id: 'ca-1', name: 'Collab × @gor.kx', size: 'A4', originalPrice: 24.99, price: 16.99, discount: 32, limited: true, artist: '@gor.kx' },
+      { id: 'ca-2', name: 'Collab × @jowibujos', size: 'A3', originalPrice: 29.99, price: 19.99, discount: 33, popular: true, artist: '@jowibujos' },
+      { id: 'ca-3', name: 'Collab × @ribal', size: 'A4', originalPrice: 22.99, price: 14.99, discount: 35, limited: true, artist: '@ribal' },
+      { id: 'ca-4', name: 'Collab × @nks', size: 'A4', originalPrice: 24.99, price: 15.99, discount: 36, popular: true, artist: '@nks' },
+      { id: 'ca-5', name: 'Collab × @leyvel', size: 'A3', originalPrice: 27.99, price: 17.99, discount: 36, limited: true, artist: '@leyvel' },
+      { id: 'ca-6', name: 'Collab × @grungefaceart', size: 'A4', originalPrice: 26.99, price: 16.99, discount: 37, popular: true, artist: '@grungefaceart' },
     ],
   },
   {
@@ -101,7 +105,7 @@ function AccordionSection({ section }: { section: DTFSection }) {
 
   const maxHeight = animatedHeight.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, section.options.length * 120 + 60],
+    outputRange: [0, section.options.length * 140 + 60],
   });
 
   const opacity = animatedHeight.interpolate({
@@ -140,6 +144,9 @@ function AccordionSection({ section }: { section: DTFSection }) {
           {section.options.map((option) => (
             <View key={option.id} style={styles.optionCard}>
               <View style={styles.optionTop}>
+                {option.image && (
+                  <Image source={{ uri: option.image }} style={styles.optionThumbnail} />
+                )}
                 <View style={styles.optionInfo}>
                   <View style={styles.optionNameRow}>
                     <Text style={styles.optionName}>{option.name}</Text>
@@ -395,6 +402,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+  },
+  optionThumbnail: {
+    width: 48,
+    height: 48,
+    borderRadius: 6,
+    marginRight: 10,
+    backgroundColor: '#eee',
   },
   optionInfo: {
     flex: 1,
