@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Animated, Dimensions, Image } from 'react-native';
-import { Sparkles, Shirt, Palette, Zap, ChevronDown, Brush, Users, Upload, Tag, Star, Flame } from 'lucide-react-native';
+import { Sparkles, Shirt, Palette, Zap, ChevronDown, Brush, Users, Upload, Tag, Star, Flame, ShoppingCart, Check } from 'lucide-react-native';
+import { useCart } from '@/contexts/CartContext';
+import { Product } from '@/types/product';
 
 const { width } = Dimensions.get('window');
 
@@ -77,8 +79,31 @@ const dtfSections: DTFSection[] = [
 
 function AccordionSection({ section }: { section: DTFSection }) {
   const [expanded, setExpanded] = useState<boolean>(false);
+  const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
   const animatedHeight = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const { addToCart } = useCart();
+
+  const handleAddToCart = useCallback((option: DTFOption) => {
+    const product: Product = {
+      id: `dtf-${option.id}`,
+      name: option.name + (option.artist ? ` (${option.artist})` : ''),
+      category: 'accessories',
+      price: option.price,
+      image: option.image || 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=200&h=200&fit=crop',
+      description: `DTF ${option.size}`,
+      sizes: [option.size],
+    };
+    addToCart(product, 1, option.size);
+    setAddedItems((prev) => new Set(prev).add(option.id));
+    setTimeout(() => {
+      setAddedItems((prev) => {
+        const next = new Set(prev);
+        next.delete(option.id);
+        return next;
+      });
+    }, 1500);
+  }, [addToCart]);
 
   const toggle = useCallback(() => {
     const toValue = expanded ? 0 : 1;
@@ -105,7 +130,7 @@ function AccordionSection({ section }: { section: DTFSection }) {
 
   const maxHeight = animatedHeight.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, section.options.length * 140 + 60],
+    outputRange: [0, section.options.length * 180 + 60],
   });
 
   const opacity = animatedHeight.interpolate({
@@ -176,6 +201,23 @@ function AccordionSection({ section }: { section: DTFSection }) {
                   <Text style={styles.priceCurrent}>{option.price.toFixed(2)}€</Text>
                 </View>
               </View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={[styles.addToCartBtn, addedItems.has(option.id) && styles.addToCartBtnAdded]}
+                onPress={() => handleAddToCart(option)}
+              >
+                {addedItems.has(option.id) ? (
+                  <>
+                    <Check size={14} color="#fff" strokeWidth={2.5} />
+                    <Text style={styles.addToCartTextAdded}>Añadido</Text>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={14} color="#fff" strokeWidth={2} />
+                    <Text style={styles.addToCartText}>Añadir al carrito</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           ))}
           <View style={styles.promoBar}>
@@ -397,6 +439,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#eee',
     padding: 14,
+    gap: 10,
   },
   optionTop: {
     flexDirection: 'row',
@@ -493,6 +536,30 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800' as const,
     color: '#000',
+  },
+  addToCartBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#000',
+    paddingVertical: 9,
+    borderRadius: 4,
+  },
+  addToCartBtnAdded: {
+    backgroundColor: '#2E7D32',
+  },
+  addToCartText: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: '#fff',
+    letterSpacing: 0.3,
+  },
+  addToCartTextAdded: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: '#fff',
+    letterSpacing: 0.3,
   },
   promoBar: {
     flexDirection: 'row',
