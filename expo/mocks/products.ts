@@ -1,7 +1,15 @@
 import { Product } from '@/types/product';
 
 export const PRODUCTS: Product[] = [
-
+  {
+    id: '19',
+    name: 'Camiseta Gráfica Oversize',
+    category: 'tshirt',
+    price: 10.00,
+    image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/00gdtcayoounr7cyr38oh.jpg',
+    description: 'Camiseta con diseño gráfico exclusivo, corte cómodo y acabado urbano',
+    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+  },
   {
     id: '5',
     name: 'Camiseta Batik Gris',
