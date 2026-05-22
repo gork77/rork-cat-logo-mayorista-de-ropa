@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Minus, ShoppingCart, ChevronLeft } from 'lucide-react-native';
 import { PRODUCTS } from '@/mocks/products';
 import { useCart } from '@/contexts/CartContext';
@@ -12,7 +12,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { addToCart } = useCart();
+  const { addToCart, bulkDiscountThreshold, bulkDiscountRate } = useCart();
   
   const product = PRODUCTS.find(p => p.id === id);
   
@@ -27,6 +27,12 @@ export default function ProductDetailScreen() {
       </View>
     );
   }
+
+  const unitPrice = useMemo<number>(() => {
+    const basePrice = product.price || 0;
+    return quantity >= bulkDiscountThreshold ? basePrice * (1 - bulkDiscountRate) : basePrice;
+  }, [bulkDiscountRate, bulkDiscountThreshold, product.price, quantity]);
+  const hasBulkDiscount = quantity >= bulkDiscountThreshold;
 
   const handleAddToCart = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -63,7 +69,12 @@ export default function ProductDetailScreen() {
         <View style={styles.contentContainer}>
           <View style={styles.headerSection}>
             <Text style={styles.productName}>{product.name}</Text>
-            <Text style={styles.productPrice}>{(product.price || 0).toFixed(2)}€</Text>
+            <View style={styles.priceHeaderBlock}>
+              {hasBulkDiscount && (
+                <Text style={styles.originalPrice}>{(product.price || 0).toFixed(2)}€</Text>
+              )}
+              <Text style={[styles.productPrice, hasBulkDiscount && styles.discountedPrice]}>{unitPrice.toFixed(2)}€</Text>
+            </View>
           </View>
 
           <View style={styles.descriptionSection}>
@@ -149,9 +160,13 @@ export default function ProductDetailScreen() {
             </View>
           </View>
 
+          {hasBulkDiscount && (
+            <Text style={styles.discountBadge}>Descuento mayorista aplicado: -10% por 50+ prendas iguales</Text>
+          )}
+
           <View style={styles.totalSection}>
             <Text style={styles.totalLabel}>Subtotal</Text>
-            <Text style={styles.totalPrice}>{((product.price || 0) * (quantity || 1)).toFixed(2)}€</Text>
+            <Text style={styles.totalPrice}>{(unitPrice * (quantity || 1)).toFixed(2)}€</Text>
           </View>
         </View>
       </ScrollView>
@@ -226,10 +241,33 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     lineHeight: 32,
   },
+  priceHeaderBlock: {
+    alignItems: 'flex-start',
+  },
   productPrice: {
     fontSize: 28,
     fontWeight: '700' as const,
     color: '#000',
+  },
+  originalPrice: {
+    fontSize: 14,
+    color: '#999',
+    textDecorationLine: 'line-through',
+    marginBottom: 2,
+  },
+  discountedPrice: {
+    color: '#0f8a3b',
+  },
+  discountBadge: {
+    alignSelf: 'flex-start',
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: '#0f8a3b',
+    backgroundColor: '#e9f8ef',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    marginBottom: 14,
+    letterSpacing: 0.2,
   },
   descriptionSection: {
     marginBottom: 32,

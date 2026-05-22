@@ -8,7 +8,7 @@ import { trpc } from '@/lib/trpc';
 import * as Haptics from 'expo-haptics';
 
 export default function CartScreen() {
-  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
+  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart, getDiscountedUnitPrice, bulkDiscountThreshold } = useCart();
   const { userInfo } = useUser();
   const { addOrder } = useOrders();
   
@@ -92,7 +92,11 @@ export default function CartScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {items.map((item, index) => (
+        {items.map((item, index) => {
+          const unitPrice = getDiscountedUnitPrice(item);
+          const hasBulkDiscount = item.quantity >= bulkDiscountThreshold;
+
+          return (
           <View key={`${item.product.id}-${item.selectedSize}-${item.selectedColor || 'default'}-${index}`} style={styles.cartItem}>
             <Image 
               source={{ uri: item.product.image }} 
@@ -120,7 +124,12 @@ export default function CartScreen() {
                 )}
               </View>
               <View style={styles.itemFooter}>
-                <Text style={styles.itemPrice}>{(item.product.price || 0).toFixed(2)}€</Text>
+                <View>
+                  {hasBulkDiscount && (
+                    <Text style={styles.originalPrice}>{(item.product.price || 0).toFixed(2)}€</Text>
+                  )}
+                  <Text style={[styles.itemPrice, hasBulkDiscount && styles.discountedPrice]}>{unitPrice.toFixed(2)}€</Text>
+                </View>
                 <View style={styles.quantityControl}>
                   <TouchableOpacity
                     style={styles.quantityButton}
@@ -139,12 +148,16 @@ export default function CartScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
+              {hasBulkDiscount && (
+                <Text style={styles.discountBadge}>-10% por comprar 50+ prendas iguales</Text>
+              )}
               <Text style={styles.itemSubtotal}>
-                Subtotal: {((item.product.price || 0) * (item.quantity || 1)).toFixed(2)}€
+                Subtotal: {(unitPrice * (item.quantity || 1)).toFixed(2)}€
               </Text>
             </View>
           </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -261,6 +274,26 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600' as const,
     color: '#000',
+  },
+  originalPrice: {
+    fontSize: 11,
+    color: '#999',
+    textDecorationLine: 'line-through',
+    marginBottom: 2,
+  },
+  discountedPrice: {
+    color: '#0f8a3b',
+  },
+  discountBadge: {
+    alignSelf: 'flex-start',
+    fontSize: 10,
+    fontWeight: '700' as const,
+    color: '#0f8a3b',
+    backgroundColor: '#e9f8ef',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 6,
+    letterSpacing: 0.2,
   },
   quantityControl: {
     flexDirection: 'row',

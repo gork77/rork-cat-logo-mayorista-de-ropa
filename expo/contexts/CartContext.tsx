@@ -2,6 +2,14 @@ import createContextHook from '@nkzw/create-context-hook';
 import { useState, useCallback } from 'react';
 import { Product, CartItem } from '@/types/product';
 
+const BULK_DISCOUNT_THRESHOLD = 50;
+const BULK_DISCOUNT_RATE = 0.1;
+
+const getDiscountedUnitPrice = (item: CartItem): number => {
+  const basePrice = item.product.price || 0;
+  return item.quantity >= BULK_DISCOUNT_THRESHOLD ? basePrice * (1 - BULK_DISCOUNT_RATE) : basePrice;
+};
+
 export const [CartProvider, useCart] = createContextHook(() => {
   const [items, setItems] = useState<CartItem[]>([]);
 
@@ -54,7 +62,7 @@ export const [CartProvider, useCart] = createContextHook(() => {
   }, []);
 
   const getTotalPrice = useCallback(() => {
-    return items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    return items.reduce((total, item) => total + getDiscountedUnitPrice(item) * item.quantity, 0);
   }, [items]);
 
   const getTotalItems = useCallback(() => {
@@ -69,5 +77,8 @@ export const [CartProvider, useCart] = createContextHook(() => {
     clearCart,
     getTotalPrice,
     getTotalItems,
+    getDiscountedUnitPrice,
+    bulkDiscountThreshold: BULK_DISCOUNT_THRESHOLD,
+    bulkDiscountRate: BULK_DISCOUNT_RATE,
   };
 });

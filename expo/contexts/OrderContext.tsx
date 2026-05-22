@@ -3,6 +3,14 @@ import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CartItem } from '@/types/product';
 
+const BULK_DISCOUNT_THRESHOLD = 50;
+const BULK_DISCOUNT_RATE = 0.1;
+
+const getOrderItemUnitPrice = (item: CartItem): number => {
+  const basePrice = item.product.price || 0;
+  return item.quantity >= BULK_DISCOUNT_THRESHOLD ? basePrice * (1 - BULK_DISCOUNT_RATE) : basePrice;
+};
+
 export type OrderItem = {
   productName: string;
   productImage: string;
@@ -64,7 +72,7 @@ export const [OrderProvider, useOrders] = createContextHook(() => {
         quantity: item.quantity,
         size: item.selectedSize,
         color: item.selectedColor,
-        price: item.product.price,
+        price: getOrderItemUnitPrice(item),
       })),
       total,
       status: 'Confirmado',
