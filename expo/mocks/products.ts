@@ -65,6 +65,15 @@ export const PRODUCTS: Product[] = [
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
   },
   {
+    id: '20',
+    name: 'Riñonera Táctica',
+    category: 'accessories',
+    price: 9.34,
+    image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/ddk6a95um9hibivrxuk0m.jpg',
+    description: 'Riñonera táctica resistente, práctica y perfecta para uso urbano',
+    sizes: ['Única'],
+  },
+  {
     id: '10',
     name: 'Gorra Vintage Desgastada',
     category: 'accessories',
